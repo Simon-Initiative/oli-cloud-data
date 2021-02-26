@@ -1,8 +1,6 @@
 # oli-cloud-data project
 
-This project uses Quarkus.
-
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+This project extract and imports data into S3
 
 ## Running the application in dev mode
 
@@ -101,3 +99,5 @@ If you want to learn more about building native executables, please consult http
 ## Related guides
 
 - Amazon S3 ([guide](https://quarkus.io/guides/amazon-s3)): Connect to Amazon S3 cloud storage
+- If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+
