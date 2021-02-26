@@ -1,0 +1,12 @@
+version: '3.7'
+services:
+  oli-cloud-data:
+   build:
+     context: .
+     dockerfile: ./src/main/docker/Dockerfile.jvm
+   image: oli/cloud-data
+   container_name: oli-cloud-data
+   env_file: service.env
+   restart: always
+   ports:
+     - "35675:8080"

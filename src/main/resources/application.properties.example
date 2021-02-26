@@ -1,0 +1,17 @@
+quarkus.datasource.db-kind=mysql
+quarkus.datasource.username=<username>
+quarkus.datasource.password=<password>
+quarkus.datasource.reactive.url=mysql://127.0.0.1:<port>
+
+quarkus.datasource."logging".db-kind=mysql
+quarkus.datasource."logging".username=<username>
+quarkus.datasource."logging".password=<password>
+quarkus.datasource."logging".reactive.url=mysql://127.0.0.1:<port>
+
+## For local use in development mode
+quarkus.s3.endpoint-override=http://127.0.0.1:8008
+quarkus.s3.aws.region=us-east-1
+quarkus.s3.aws.credentials.type=static
+quarkus.s3.aws.credentials.static-provider.access-key-id=test-key
+quarkus.s3.aws.credentials.static-provider.secret-access-key=test-secret
+bucket.name=quarkus.s3.quickstart
