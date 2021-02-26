@@ -1,6 +1,6 @@
 # oli-cloud-data project
 
-This project exports data from OLI main and logging databases, formats that data into csv files, then uploads those files into Amazon S3
+This project exports data from OLI main and logging databases, formats that data into csv files, then uploads those files into Amazon S3 buckets
 
 ## Running the application in dev mode
 
