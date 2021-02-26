@@ -58,6 +58,7 @@ Be aware that it’s not an _über-jar_ as the dependencies are copied into the 
 - ```docker-compose up -d```
 
 ## Calling the data endpoint
+Example:
 ```
 curl --location --request POST 'localhost:8080/cloud/quiz/data' \
 --header 'api_token: j8682yesb7tJdc9xRWMC#t!&%aD28xfNvb*gJWv!SNQKzYnbgw' \
