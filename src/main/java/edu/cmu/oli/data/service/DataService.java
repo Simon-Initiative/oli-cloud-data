@@ -119,7 +119,7 @@ public class DataService {
     }
 
     private void uploadFile(String fileName, String fileData, String mimeType) {
-        misc();
+//        misc();
         Uni<String> csv = Uni.createFrom()
                 .completionStage(() -> {
                     return s3.putObject(buildPutRequest(fileName, mimeType),
