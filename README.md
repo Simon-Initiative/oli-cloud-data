@@ -59,7 +59,7 @@ Be aware that it’s not an _über-jar_ as the dependencies are copied into the 
 Example:
 ```
 curl --location --request POST 'localhost:8080/cloud/quiz/data' \
---header 'api_token: j8682yesb7tJdc9xRWMC#t!&%aD28xfNvb*gJWv!SNQKzYnbgw' \
+--header 'api_token: example-api-token-SNQKzYnbgw' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "admitCode": "CC-S21",
