@@ -14,21 +14,32 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.ws.rs.core.Response;
 import java.util.Map;
+
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 @RouteBase(path = "cloud")
 public class Routes {
 
     @Inject
-    DataService dataService;
+    Logger log;
 
     @Inject
-    Logger log;
+    DataService dataService;
+
+    @ConfigProperty(name = "oli.cloud.api.token")
+    String apiToken;
 
     @Route(path = "/quiz/data", methods = HttpMethod.POST)
     Uni<JsonObject> processQuizData(RoutingContext rc, @Body @Valid QuizDetailsForm formData) {
-        log.info("Security header " +rc.request().headers().get("secure"));
+        String token = rc.request().headers().get("api_token");
+        if(token == null || !token.equals(apiToken)){
+            rc.response().setStatusCode(Response.Status.FORBIDDEN.getStatusCode());
+            return Uni.createFrom().item(new JsonObject(Map.of("error", "forbidden")));
+        }
+
         try {
             formData.validate();
         } catch (Exception e) {
