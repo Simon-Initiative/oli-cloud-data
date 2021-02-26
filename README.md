@@ -57,6 +57,23 @@ Be aware that it’s not an _über-jar_ as the dependencies are copied into the 
 - Run the container  
 - ```docker-compose up -d```
 
+## Calling the data endpoint
+```
+curl --location --request POST 'localhost:8080/cloud/quiz/data' \
+--header 'api_token: j8682yesb7tJdc9xRWMC#t!&%aD28xfNvb*gJWv!SNQKzYnbgw' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "admitCode": "CC-S21",
+    "quizId": "u02_quiz_01",
+    "semester": "S21",
+    "quizNumber": 2,
+    "startDate": "2021-02-14",
+    "endDate": "2021-02-21"
+}'
+```
+
+## Creating an _über-jar_
+
 If you want to build an _über-jar_, execute the following command:
 ```shell script
 ./mvnw package -Dquarkus.package.type=uber-jar
@@ -79,7 +96,6 @@ Or, if you don't have GraalVM installed, you can run the native executable build
 You can then execute your native executable with: `./target/oli-cloud-data-1.0.0-runner`
 
 If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.html.
-
 
 ## Related guides
 
