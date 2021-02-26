@@ -60,27 +60,6 @@ public class DataService {
     @ConfigProperty(name = "bucket.name")
     String bucketName;
 
-    private static String readScript(final String scriptLocation) {
-        try {
-            InputStream stream = DataService.class.getClassLoader().getResourceAsStream(scriptLocation);
-            return readFile(stream);
-        } catch (IOException ex) {
-            final String message = "An unexpected error has occurred while reading data creation query from file";
-            // log.error(message, ex);
-            throw new RuntimeException(message, ex);
-        }
-    }
-
-    private static String readFile(InputStream inputStream) throws IOException {
-        byte[] buffer;
-        int length;
-        try (inputStream) {
-            buffer = new byte[inputStream.available()];
-            length = inputStream.read(buffer);
-        }
-        return new String(buffer, 0, length, StandardCharsets.UTF_8);
-    }
-
     public Uni<JsonObject> quizData(QuizDetailsForm formData) {
         Map<String, String> variableReplacements =
                 Map.of("quiz_id", "'" + formData.quizId + "'",
@@ -116,6 +95,27 @@ public class DataService {
         });
 
         return Uni.createFrom().item(new JsonObject(Map.of("message", "S3 bucket data upload initiated")));
+    }
+
+    private static String readScript(final String scriptLocation) {
+        try {
+            InputStream stream = DataService.class.getClassLoader().getResourceAsStream(scriptLocation);
+            return readFile(stream);
+        } catch (IOException ex) {
+            final String message = "An unexpected error has occurred while reading data creation query from file";
+            // log.error(message, ex);
+            throw new RuntimeException(message, ex);
+        }
+    }
+
+    private static String readFile(InputStream inputStream) throws IOException {
+        byte[] buffer;
+        int length;
+        try (inputStream) {
+            buffer = new byte[inputStream.available()];
+            length = inputStream.read(buffer);
+        }
+        return new String(buffer, 0, length, StandardCharsets.UTF_8);
     }
 
     private void uploadFile(String fileName, String fileData, String mimeType) {
