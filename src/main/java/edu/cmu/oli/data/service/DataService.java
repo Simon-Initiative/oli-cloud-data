@@ -70,19 +70,15 @@ public class DataService {
         Uni<List<String>> csvOutput = toCsvOutput(mainClient, parseQuery(quizTimeDiffQuery, variableReplacements));
         csvOutput.subscribe().with(data -> {
             StringBuilder sb = new StringBuilder();
-            data.forEach(item -> {
-                sb.append(item);
-            });
-            uploadFile(formData.semester + "-Quiz-" + formData.quizNumber + "-" + formData.quizId + ".csv", sb.toString(), "csv");
+            data.forEach(sb::append);
+            uploadFile(formData.semester + "-Quiz-" + formData.quizNumber + "-" + formData.quizId + ".csv", sb.toString());
         });
 
         csvOutput = toCsvOutput(mainClient, parseQuery(quizDetailsQuery, variableReplacements));
         csvOutput.subscribe().with(data -> {
             StringBuilder sb = new StringBuilder();
-            data.forEach(item -> {
-                sb.append(item);
-            });
-            uploadFile(formData.semester + "-Quiz-" + formData.quizNumber + "-" + formData.quizId + "_details.csv", sb.toString(), "csv");
+            data.forEach(sb::append);
+            uploadFile(formData.semester + "-Quiz-" + formData.quizNumber + "-" + formData.quizId + "_details.csv", sb.toString());
         });
 
         Uni<List<String>> studentList = studentList(parseQuery(registeredStudentQuery, variableReplacements));
@@ -101,7 +97,7 @@ public class DataService {
         try {
             InputStream stream = DataService.class.getClassLoader().getResourceAsStream(scriptLocation);
             return readFile(stream);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             final String message = "An unexpected error has occurred while reading data creation query from file";
             // log.error(message, ex);
             throw new RuntimeException(message, ex);
@@ -118,10 +114,10 @@ public class DataService {
         return new String(buffer, 0, length, StandardCharsets.UTF_8);
     }
 
-    private void uploadFile(String fileName, String fileData, String mimeType) {
+    private void uploadFile(String fileName, String fileData) {
         Uni<String> csv = Uni.createFrom()
                 .completionStage(() -> {
-                    return s3.putObject(buildPutRequest(fileName, mimeType),
+                    return s3.putObject(buildPutRequest(fileName),
                             AsyncRequestBody.fromFile(uploadToTemp(new ByteArrayInputStream(fileData.getBytes()))));
                 })
                 .onItem().ignore().andSwitchTo(Uni.createFrom().item(fileName + " uploaded"))
@@ -142,10 +138,8 @@ public class DataService {
         Uni<List<String>> csvOutput = toCsvOutput(loggingClient, parseQuery(loggingQuery, variableReplacements));
         csvOutput.subscribe().with(data -> {
             StringBuilder sb = new StringBuilder();
-            data.forEach(item -> {
-                sb.append(item);
-            });
-            uploadFile(formData.semester + "-log-data-" + formData.startDate + "-" + formData.endDate + ".csv", sb.toString(), "csv");
+            data.forEach(sb::append);
+            uploadFile(formData.semester + "-log-data-" + formData.startDate + "-" + formData.endDate + ".csv", sb.toString());
         });
     }
 
@@ -216,11 +210,11 @@ public class DataService {
         return queryBuilder.toString();
     }
 
-    protected PutObjectRequest buildPutRequest(String fileName, String mimeType) {
+    protected PutObjectRequest buildPutRequest(String fileName) {
         return PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(fileName)
-                .contentType(mimeType)
+                .contentType("csv")
                 .build();
     }
 
