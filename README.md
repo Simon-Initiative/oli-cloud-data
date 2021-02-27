@@ -15,7 +15,7 @@ You can run your application in dev mode that enables live coding using:
 ```
 ## Local S3 functionality 
 
-In order to test out S3 functionality locally, you will need to provision and run a local copy using the following command
+In order to test out S3 functionality locally, you can provision and run a local S3 service using the following commands
 ```
 docker run -it --publish 8008:4566 -e SERVICES=s3 -e START_WEB=0 localstack/localstack:0.11.5
 ```
