@@ -6,6 +6,8 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.mysqlclient.MySQLPool;
 import io.vertx.mutiny.sqlclient.Row;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -16,17 +18,11 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,18 +63,16 @@ public class DataService {
                         "starting", "'" + formData.startDate + "'",
                         "ending", "'" + formData.endDate + "'");
 
-        Uni<List<String>> csvOutput = toCsvOutput(mainClient, parseQuery(quizTimeDiffQuery, variableReplacements));
+        Uni<List<List<String>>> csvOutput = toCsvOutput(mainClient, parseQuery(quizTimeDiffQuery, variableReplacements));
         csvOutput.subscribe().with(data -> {
-            StringBuilder sb = new StringBuilder();
-            data.forEach(sb::append);
-            uploadFile(formData.semester + "-Quiz-" + formData.quizNumber + "-" + formData.quizId + ".csv", sb.toString());
+            String csvData = getCSVOutput(data);
+            uploadFile(formData.s3Folder+"/"+formData.semester + "-Quiz-" + formData.quizNumber + "-" + formData.quizId + ".csv", csvData);
         });
 
         csvOutput = toCsvOutput(mainClient, parseQuery(quizDetailsQuery, variableReplacements));
         csvOutput.subscribe().with(data -> {
-            StringBuilder sb = new StringBuilder();
-            data.forEach(sb::append);
-            uploadFile(formData.semester + "-Quiz-" + formData.quizNumber + "-" + formData.quizId + "_details.csv", sb.toString());
+            String csvData = getCSVOutput(data);
+            uploadFile(formData.s3Folder+"/"+formData.semester + "-Quiz-" + formData.quizNumber + "-" + formData.quizId + "_details.csv", csvData);
         });
 
         Uni<List<String>> studentList = studentList(parseQuery(registeredStudentQuery, variableReplacements));
@@ -114,7 +108,33 @@ public class DataService {
         return new String(buffer, 0, length, StandardCharsets.UTF_8);
     }
 
+    private String getCSVOutput(List<List<String>> data) {
+        StringWriter stringWriter = new StringWriter();
+        String output = "";
+        List<String> s = data.get(0);
+        String[] headers = s.toArray(new String[0]);
+        data.remove(0);
+        CSVPrinter printer = null;
+        try {
+            printer = new CSVPrinter(stringWriter, CSVFormat.DEFAULT.withHeader(headers));
+            printer.printRecords(data);
+            output = stringWriter.toString();
+        } catch (IOException e) {
+            log.error(e.getLocalizedMessage(), e);
+        } finally {
+            try {
+                if (printer != null) {
+                    printer.close();
+                }
+                stringWriter.close();
+            } catch (IOException e) {
+            }
+        }
+        return output;
+    }
+
     private void uploadFile(String fileName, String fileData) {
+
         Uni<String> csv = Uni.createFrom()
                 .completionStage(() -> {
                     return s3.putObject(buildPutRequest(fileName),
@@ -135,15 +155,14 @@ public class DataService {
     }
 
     private void uploadLoggingData(QuizDetailsForm formData, Map<String, String> variableReplacements) {
-        Uni<List<String>> csvOutput = toCsvOutput(loggingClient, parseQuery(loggingQuery, variableReplacements));
+        Uni<List<List<String>>> csvOutput = toCsvOutput(loggingClient, parseQuery(loggingQuery, variableReplacements));
         csvOutput.subscribe().with(data -> {
-            StringBuilder sb = new StringBuilder();
-            data.forEach(sb::append);
-            uploadFile(formData.semester + "-log-data-" + formData.startDate + "-" + formData.endDate + ".csv", sb.toString());
+            String csvData = getCSVOutput(data);
+            uploadFile(formData.s3Folder+"/"+formData.semester + "-log-data-" + formData.startDate + "-" + formData.endDate + ".csv", csvData);
         });
     }
 
-    private Uni<List<String>> toCsvOutput(MySQLPool pool, String query) {
+    private Uni<List<List<String>>> toCsvOutput(MySQLPool pool, String query) {
         AtomicInteger atomicInteger = new AtomicInteger();
         return pool.query(query).execute().onItem().transformToMulti(set -> Multi.createFrom().iterable(set))
                 .onItem().transform((Row row) -> fromRow(row, atomicInteger)).collect().asList();
@@ -158,28 +177,19 @@ public class DataService {
         return row.getString("user_guid");
     }
 
-    private String fromRow(Row row, AtomicInteger atomicInteger) {
-        StringBuilder sb = new StringBuilder();
+    private List<String> fromRow(Row row, AtomicInteger atomicInteger) {
+        List<String> sb = new ArrayList<>();
         if (atomicInteger.getAndIncrement() == 0) {
             // Add header
             for (int x = 0; x < row.size(); x++) {
-                sb.append(row.getColumnName(x));
-                if (x < row.size() - 1) {
-                    sb.append(",");
-                }
+                sb.add(row.getColumnName(x));
             }
-            sb.append("\n");
         }
         for (int x = 0; x < row.size(); x++) {
             Object value = row.getValue(x);
-            sb.append(value == null ? "null" : value.toString());
-            if (x < row.size() - 1) {
-                sb.append(",");
-            }
+            sb.add(value == null ? "null" : value.toString());
         }
-        sb.append("\n");
-
-        return sb.toString();
+        return sb;
     }
 
     /**
@@ -232,7 +242,6 @@ public class DataService {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-
         return tempPath;
     }
 }

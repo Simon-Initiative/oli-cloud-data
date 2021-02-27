@@ -62,9 +62,10 @@ curl --location --request POST 'localhost:8080/cloud/quiz/data' \
 --header 'api_token: example-api-token-SNQKzYnbgw' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-    "admitCode": "CC-S21",
+    "admitCode": "CC-S2133",
     "quizId": "u02_quiz_01",
     "semester": "S21",
+    "s3Folder": "s21-15619",
     "quizNumber": 2,
     "startDate": "2021-02-14",
     "endDate": "2021-02-21"

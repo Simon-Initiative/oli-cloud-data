@@ -15,6 +15,9 @@ public class QuizDetailsForm {
     @NotBlank(message = "semester may not be blank")
     public String semester;
 
+    @NotBlank(message = "s3Folder may not be blank")
+    public String s3Folder;
+
     @Positive(message = "quiz_number may not be blank")
     public Integer quizNumber;
 
