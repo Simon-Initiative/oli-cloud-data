@@ -36,6 +36,8 @@ public class DataService {
     private static final String loggingQuery;
     static Logger log = Logger.getLogger(DataService.class);
 
+    private static final Set<QuizDetailsForm> duplicateRequests = Collections.synchronizedSet(new HashSet<>());
+
     static {
         quizTimeDiffQuery = readScript("quiz-time-diff.sql");
         quizDetailsQuery = readScript("quiz-details.sql");
@@ -57,6 +59,10 @@ public class DataService {
     String bucketName;
 
     public Uni<JsonObject> quizData(QuizDetailsForm formData) {
+        if(duplicateRequests.contains(formData)){
+            return Uni.createFrom().item(new JsonObject(Map.of("message", "S3 already in progress")));
+        }
+        duplicateRequests.add(formData);
         Map<String, String> variableReplacements =
                 Map.of("quiz_id", "'" + formData.quizId + "'",
                         "admit_code", "'" + formData.admitCode + "'",
@@ -155,11 +161,15 @@ public class DataService {
     }
 
     private void uploadLoggingData(QuizDetailsForm formData, Map<String, String> variableReplacements) {
-        Uni<List<List<String>>> csvOutput = toCsvOutput(loggingClient, parseQuery(loggingQuery, variableReplacements));
-        csvOutput.subscribe().with(data -> {
-            String csvData = getCSVOutput(data);
-            uploadFile(formData.s3Folder+"/"+formData.semester + "-log-data-" + formData.startDate + "-" + formData.endDate + ".csv", csvData);
-        });
+        try {
+            Uni<List<List<String>>> csvOutput = toCsvOutput(loggingClient, parseQuery(loggingQuery, variableReplacements));
+            csvOutput.subscribe().with(data -> {
+                String csvData = getCSVOutput(data);
+                uploadFile(formData.s3Folder+"/"+formData.semester + "-log-data-" + formData.startDate + "-" + formData.endDate + ".csv", csvData);
+            });
+        }finally {
+            duplicateRequests.remove(formData);
+        }
     }
 
     private Uni<List<List<String>>> toCsvOutput(MySQLPool pool, String query) {

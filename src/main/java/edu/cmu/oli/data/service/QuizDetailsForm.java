@@ -44,4 +44,32 @@ public class QuizDetailsForm {
         LocalDate.parse(startDate);
         LocalDate.parse(endDate);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        QuizDetailsForm that = (QuizDetailsForm) o;
+
+        if (!admitCode.equals(that.admitCode)) return false;
+        if (!quizId.equals(that.quizId)) return false;
+        if (!semester.equals(that.semester)) return false;
+        if (!s3Folder.equals(that.s3Folder)) return false;
+        if (!quizNumber.equals(that.quizNumber)) return false;
+        if (!startDate.equals(that.startDate)) return false;
+        return endDate.equals(that.endDate);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = admitCode.hashCode();
+        result = 31 * result + quizId.hashCode();
+        result = 31 * result + semester.hashCode();
+        result = 31 * result + s3Folder.hashCode();
+        result = 31 * result + quizNumber.hashCode();
+        result = 31 * result + startDate.hashCode();
+        result = 31 * result + endDate.hashCode();
+        return result;
+    }
 }
